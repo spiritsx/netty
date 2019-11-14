@@ -16,16 +16,7 @@
 
 package io.netty.bootstrap;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.DefaultChannelPromise;
-import io.netty.channel.EventLoop;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ReflectiveChannelFactory;
+import io.netty.channel.*;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -102,20 +93,6 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     /**
-     * @deprecated Use {@link #channelFactory(io.netty.channel.ChannelFactory)} instead.
-     */
-    @Deprecated
-    public B channelFactory(ChannelFactory<? extends C> channelFactory) {
-        ObjectUtil.checkNotNull(channelFactory, "channelFactory");
-        if (this.channelFactory != null) {
-            throw new IllegalStateException("channelFactory set already");
-        }
-
-        this.channelFactory = channelFactory;
-        return self();
-    }
-
-    /**
      * {@link io.netty.channel.ChannelFactory} which is used to create {@link Channel} instances from
      * when calling {@link #bind()}. This method is usually only used if {@link #channel(Class)}
      * is not working for you because of some more complex needs. If your {@link Channel} implementation
@@ -123,8 +100,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * simplify your code.
      */
     @SuppressWarnings({ "unchecked", "deprecation" })
-    public B channelFactory(io.netty.channel.ChannelFactory<? extends C> channelFactory) {
-        return channelFactory((ChannelFactory<C>) channelFactory);
+    public B channelFactory(ChannelFactory<? extends C> channelFactory) {
+        return channelFactory(channelFactory);
     }
 
     /**

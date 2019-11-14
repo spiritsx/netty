@@ -52,7 +52,9 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         this.memoryMapIdx = memoryMapIdx;
         this.runOffset = runOffset;
         this.pageSize = pageSize;
-        bitmap = new long[pageSize >>> 10]; // pageSize / 16 / 64
+        // 此处使用最大值，最小分配16B所需的long个数
+        // pageSize / 16 / 64 (64表示long有64位)
+        bitmap = new long[pageSize >>> 10];
         init(head, elemSize);
     }
 
@@ -60,9 +62,12 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         doNotDestroy = true;
         this.elemSize = elemSize;
         if (elemSize != 0) {
+            // 假设一个page全部分配给16B大小的subpage，需要分配多少个
             maxNumElems = numAvail = pageSize / elemSize;
             nextAvail = 0;
+            // 分配的总内存块数量用long数组表示，数组中有几个long
             bitmapLength = maxNumElems >>> 6;
+            // subpage还不到64倍，只需要一个long
             if ((maxNumElems & 63) != 0) {
                 bitmapLength ++;
             }
@@ -87,9 +92,12 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         }
 
         final int bitmapIdx = getNextAvail();
+        // 求得bitmap数组的下标值，虽然有26位但实际只需要使用3位
         int q = bitmapIdx >>> 6;
+        // 32位中的余下6位可以表示一个64位
         int r = bitmapIdx & 63;
         assert (bitmap[q] >>> r & 1) == 0;
+        // 将64型数对应的位置为1
         bitmap[q] |= 1L << r;
 
         if (-- numAvail == 0) {
@@ -169,6 +177,7 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         final int bitmapLength = this.bitmapLength;
         for (int i = 0; i < bitmapLength; i ++) {
             long bits = bitmap[i];
+            // 如果按位翻转后，不为0，表明原本不全为1，即存在没分配完的
             if (~bits != 0) {
                 return findNextAvail0(i, bits);
             }
