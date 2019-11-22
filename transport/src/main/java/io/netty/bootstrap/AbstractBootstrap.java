@@ -101,7 +101,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      */
     @SuppressWarnings({ "unchecked", "deprecation" })
     public B channelFactory(ChannelFactory<? extends C> channelFactory) {
-        return channelFactory(channelFactory);
+        this.channelFactory = channelFactory;
+        return self();
     }
 
     /**
