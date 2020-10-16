@@ -475,7 +475,7 @@ public class HashedWheelTimer implements Timer {
             do {
                 final long deadline = waitForNextTick();
                 if (deadline > 0) {
-                    int idx = (int) (tick & mask);
+                    int idx = (int) (tick & mask); // 计算落在那个bucket
                     processCancelledTasks();
                     HashedWheelBucket bucket =
                             wheel[idx];
@@ -515,12 +515,12 @@ public class HashedWheelTimer implements Timer {
                     continue;
                 }
 
-                long calculated = timeout.deadline / tickDuration;
-                timeout.remainingRounds = (calculated - tick) / wheel.length;
-
+                long calculated = timeout.deadline / tickDuration; // 计算过期时间总共有多少个刻度，也即添加时，需要转动多少次
+                timeout.remainingRounds = (calculated - tick) / wheel.length; // 计算整个轮子还需要转几圈才轮到这个任务
+                // 让那些本应在过去执行的任务，转到在一次执行
                 final long ticks = Math.max(calculated, tick); // Ensure we don't schedule for past.
                 int stopIndex = (int) (ticks & mask);
-
+                // 添加到指定刻度
                 HashedWheelBucket bucket = wheel[stopIndex];
                 bucket.addTimeout(timeout);
             }
@@ -550,13 +550,13 @@ public class HashedWheelTimer implements Timer {
          * current time otherwise (with Long.MIN_VALUE changed by +1)
          */
         private long waitForNextTick() {
-            long deadline = tickDuration * (tick + 1);
+            long deadline = tickDuration * (tick + 1); // 计算到下一刻度的终止时间
 
             for (;;) {
-                final long currentTime = System.nanoTime() - startTime;
-                long sleepTimeMs = (deadline - currentTime + 999999) / 1000000;
+                final long currentTime = System.nanoTime() - startTime; // 计算相对于启动时刻的相对时间
+                long sleepTimeMs = (deadline - currentTime + 999999) / 1000000; // 计算到下一刻度的终止时间需要休眠多久，不足1ms的补到1ms
 
-                if (sleepTimeMs <= 0) {
+                if (sleepTimeMs <= 0) { // 睡眠时间小于等于0， 可以准备返回了
                     if (currentTime == Long.MIN_VALUE) {
                         return -Long.MAX_VALUE;
                     } else {
